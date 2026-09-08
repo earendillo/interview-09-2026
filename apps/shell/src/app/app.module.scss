@@ -27,3 +27,15 @@
   display: flex;
   gap: var(--space-3);
 }
+
+.degraded {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger, #b3261e);
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-danger, #b3261e);
+  font-size: var(--text-sm);
+}
+
+.rolledBack {
+  color: var(--color-danger, #b3261e);
+}

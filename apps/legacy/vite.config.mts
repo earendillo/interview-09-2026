@@ -5,34 +5,29 @@ import { federation } from '@module-federation/vite';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/apps/shell',
+  cacheDir: '../../node_modules/.vite/apps/legacy',
   server: {
-    port: 4202,
+    port: 4203,
     host: 'localhost',
+    origin: 'http://localhost:4203',
+  },
+  resolve: {
+    dedupe: [],
   },
   plugins: [
     react(),
     federation({
-      name: 'shell',
+      name: 'legacy',
       filename: 'remoteEntry.js',
-      remotes: {},
-      shared: {
-        react: {
-          singleton: true,
-          requiredVersion: '^19.0.0',
-          strictVersion: true,
-        },
-        'react-dom': {
-          singleton: true,
-          requiredVersion: '^19.0.0',
-          strictVersion: true,
-        },
+      exposes: {
+        './LegacyWidget': './src/remote/legacy-widget-mount.tsx',
       },
+      shared: {},
+      shareScope: 'legacy',
       dts: false,
     }),
   ],
   build: {
-    // The federation runtime relies on top-level await.
     target: 'esnext',
     outDir: './dist',
     emptyOutDir: true,
@@ -42,7 +37,7 @@ export default defineConfig(() => ({
     },
   },
   test: {
-    name: '@interview/shell',
+    name: '@interview/legacy',
     watch: false,
     globals: true,
     environment: 'jsdom',

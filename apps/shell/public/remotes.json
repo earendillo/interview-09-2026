@@ -1,0 +1,17 @@
+{
+  "web": {
+    "url": "http://localhost:4200/remoteEntry.js",
+    "shareScope": "default",
+    "contract": 1
+  },
+  "dashboard": {
+    "url": "http://localhost:4201/remoteEntry.js",
+    "shareScope": "default",
+    "contract": 1
+  },
+  "legacy": {
+    "url": "http://localhost:4203/remoteEntry.js",
+    "shareScope": "legacy",
+    "contract": 1
+  }
+}

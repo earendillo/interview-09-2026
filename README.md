@@ -14,6 +14,7 @@ apps/
   shell/            React application, Module Federation host (port 4202)
   web/              React application, Module Federation remote (port 4200)
   dashboard/        React application, Module Federation remote (port 4201)
+  legacy/           React 17 application, Module Federation remote (port 4203)
   api/              Minimal HTTP service, in-memory data (port 3333)
   web-e2e/          Playwright end-to-end tests for `web`
 
@@ -42,61 +43,95 @@ are not allowed; within a project, relative imports are fine.
 
 ## Module Federation
 
-`shell` is the host; `web` and `dashboard` are remotes. The host loads the two
-components at runtime over HTTP — there is no build-time dependency between the
-three applications, and no `@interview/*` import between them.
+`shell` is the host; `web`, `dashboard` and `legacy` are remotes. The host loads
+each component at runtime over HTTP — there is no build-time dependency between
+the applications, and no `@interview/*` import between them.
 
 ```
-shell (:4202, host)
-  ├── web/WebWidget                 ← http://localhost:4200/remoteEntry.js
-  └── dashboard/DashboardWidget     ← http://localhost:4201/remoteEntry.js
+shell (:4202, host, React 19)
+  ├── web/WebWidget              ← :4200  React 19, shared singleton
+  ├── dashboard/DashboardWidget  ← :4201  React 19, shared singleton
+  └── legacy/LegacyWidget        ← :4203  React 17, its own copy
 ```
 
-| Application | Role   | Exposes                                                    |
-| ----------- | ------ | ---------------------------------------------------------- |
-| `shell`     | host   | —                                                          |
-| `web`       | remote | `./WebWidget` from `src/remote/web-widget.tsx`             |
-| `dashboard` | remote | `./DashboardWidget` from `src/remote/dashboard-widget.tsx` |
+| Application | Role   | React  | Share scope | Exposes                                   |
+| ----------- | ------ | ------ | ----------- | ----------------------------------------- |
+| `shell`     | host   | 19.0.0 | `default`   | —                                         |
+| `web`       | remote | 19.0.0 | `default`   | `./WebWidget` (a React component)         |
+| `dashboard` | remote | 19.0.0 | `default`   | `./DashboardWidget` (a React component)   |
+| `legacy`    | remote | 17.0.2 | `legacy`    | `./LegacyWidget` (a `mount` function)     |
 
 Implemented with [`@module-federation/vite`](https://module-federation.io/integrations/build-tool/vite),
-configured in each application's `vite.config.mts`. `react` and `react-dom` are
-declared as shared singletons, and all three applications use the same React
-version.
+configured in each application's `vite.config.mts`, plus
+[`@module-federation/runtime`](https://module-federation.io/guide/basic/runtime.html)
+in the host for runtime remote registration.
 
-### How the shell consumes the remotes
+### The remote manifest
 
-`apps/shell/src/app/app.tsx` loads each remote through a dynamic import that the
-federation runtime resolves:
+The host does **not** compile remote URLs into its bundle. It fetches
+`/remotes.json` at boot (`cache: 'no-store'`) and registers whatever that names:
+
+```jsonc
+{
+  "web": {
+    "url": "https://cdn/web/v2.0.0/remoteEntry.js",
+    "fallbackUrl": "https://cdn/web/v1.9.3/remoteEntry.js",
+    "shareScope": "default",
+    "contract": 1
+  }
+}
+```
+
+That is what makes the applications independently deployable: rolling a remote
+back is a pointer change in the manifest, with no host rebuild and no host
+redeploy. `contract` is the host/remote interface version — a remote declaring a
+number the host does not implement is refused at load rather than mounted.
+
+Code: `apps/shell/src/federation/`, dev manifest: `apps/shell/public/remotes.json`.
+
+### Two React majors on one page
+
+`web` and `dashboard` join the host's `default` share scope and use the host's
+single React 19 instance. `legacy` cannot: React's hook dispatcher is
+module-level state inside one copy of React, and React 19 tags elements
+`Symbol.for("react.transitional.element")` where React 17 uses
+`Symbol.for("react.element")` — so a React 17 element rendered by React 19
+is not recognised as an element at all.
+
+So `legacy` shares nothing and joins its own `legacy` scope, and the contract
+changes with it. Instead of exposing a component, it exposes a mount function
+that takes a DOM node:
 
 ```tsx
-<RemoteSlot label="Web remote" loader={() => import('web/WebWidget')} />
+export const contract = 1;
+
+export function mount(container: Element, props?: LegacyWidgetProps) {
+  ReactDOM.render(<LegacyWidget {...props} />, container);
+  return () => ReactDOM.unmountComponentAtNode(container);
+}
 ```
 
-Because these specifiers only exist at runtime, their types are declared by hand
-in `apps/shell/src/remotes.d.ts` (the plugin's type generation is disabled).
+The host renders an empty `<div>` and hands over the node
+(`apps/shell/src/app/foreign-remote.tsx`). Two React trees then run side by
+side, each with its own reconciler and its own state.
 
-### When a remote is unavailable
+### Failure handling and rollback
 
-Each remote is wrapped in `RemoteSlot` (`apps/shell/src/app/remote-slot.tsx`),
-which pairs `React.lazy`/`Suspense` with a small error boundary. While a remote
-loads it shows `Loading <name>...`; if the import fails it shows
-`Unable to load <name>` and the rest of the shell — including the other remote —
-keeps working. There is no retry logic and no shared state between remotes.
+| Failure                       | What happens                                                     |
+| ----------------------------- | ---------------------------------------------------------------- |
+| Remote entry 404 / unreachable | Rolls back to `fallbackUrl` and retries once; the UI marks it     |
+| No `fallbackUrl` to roll back to | That one slot shows a fallback, the other remotes keep working  |
+| Contract version mismatch      | Refused before `mount` is called                                  |
+| Manifest unreachable/malformed | Host boots on built-in defaults and shows a degraded banner       |
+| Error inside the legacy tree   | Contained by the host — React 17 has no error boundaries of its own |
 
-To see it, start all three, then stop one remote and reload the shell.
+Rollbacks are reported through a small external store, read in the UI with
+`useSyncExternalStore`, so the card shows the build actually in use rather than
+the one the manifest asked for.
 
-### Remote URLs
-
-Defaults point at the remotes' dev servers. Override them when building or
-serving the shell from elsewhere:
-
-```bash
-WEB_REMOTE_URL=http://localhost:4200 \
-DASHBOARD_REMOTE_URL=http://localhost:4201 \
-pnpm nx build @interview/shell
-```
-
-The URLs are read in `apps/shell/vite.config.mts` and baked in at build time.
+To see it: start all four applications, then edit `apps/shell/public/remotes.json`
+so one `url` points at a path that does not exist, give it a `fallbackUrl` that
+does, and reload the shell.
 
 ## Dependency boundaries
 
@@ -204,12 +239,13 @@ pnpm install
 ```bash
 pnpm nx dev @interview/web         # http://localhost:4200
 pnpm nx dev @interview/dashboard   # http://localhost:4201
+pnpm nx dev @interview/legacy      # http://localhost:4203
 pnpm nx dev @interview/shell       # http://localhost:4202
 pnpm nx serve @interview/api       # http://localhost:3333
 ```
 
-Each application runs on its own. For the shell to render both federated
-components, start `web` and `dashboard` first (or alongside it) — the shell
+Each application runs on its own. For the shell to render all three federated
+components, start `web`, `dashboard` and `legacy` first (or alongside it) — the shell
 still loads without them, showing a fallback per missing remote.
 
 ### API

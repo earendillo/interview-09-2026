@@ -1,8 +1,47 @@
+import { useMemo, useSyncExternalStore, type ComponentType } from 'react';
 import { Button } from '@interview/ui';
+import type { LoadedManifest } from '../federation/manifest-source';
+import type { RemoteRegistry } from '../federation/remote-registry';
+import {
+  getRollbacks,
+  subscribeRollbacks,
+} from '../federation/rollback-store';
+import { ForeignRemote, type ForeignRemoteModule } from './foreign-remote';
 import { RemoteSlot } from './remote-slot';
 import styles from './app.module.scss';
 
-export function App() {
+export interface AppProps {
+  registry: RemoteRegistry;
+  manifest: LoadedManifest;
+}
+
+type RemoteModule = { default: ComponentType };
+
+export function App({ registry, manifest }: AppProps) {
+  const loadWeb = useMemo(
+    () => () => registry.load<RemoteModule>('web', 'WebWidget'),
+    [registry],
+  );
+  const loadDashboard = useMemo(
+    () => () => registry.load<RemoteModule>('dashboard', 'DashboardWidget'),
+    [registry],
+  );
+
+  const loadLegacy = useMemo(
+    () => () => registry.load<ForeignRemoteModule>('legacy', 'LegacyWidget'),
+    [registry],
+  );
+
+  const rollbacks = useSyncExternalStore(subscribeRollbacks, getRollbacks);
+
+  const urlOf = (name: string) =>
+    rollbacks.find((event) => event.name === name)?.to ??
+    manifest.entries.find((entry) => entry.name === name)?.url ??
+    'not in manifest';
+
+  const rolledBack = (name: string) =>
+    rollbacks.some((event) => event.name === name);
+
   return (
     <div className="ui-page">
       <header className="ui-header">
@@ -10,31 +49,56 @@ export function App() {
         <span className="ui-badge">host · :4202</span>
         <p className="ui-header__subtitle">
           Module Federation host. Each card below is a component loaded at
-          runtime from a separate application.
+          runtime from a separate application, at the URL its manifest entry
+          points to.
         </p>
       </header>
+
+      {manifest.source === 'defaults' && (
+        <p className={styles.degraded} role="alert" data-testid="manifest-degraded">
+          Remote manifest unavailable ({manifest.reason}) — running on built-in
+          defaults.
+        </p>
+      )}
 
       <div className={styles.remotes}>
         <section className={`ui-card ${styles.remote}`}>
           <div className={styles.remoteHeader}>
             <h2>Web remote</h2>
-            <span className={styles.origin}>localhost:4200</span>
+            <span className={styles.origin} data-testid="web-origin">
+              {urlOf('web')}
+              {rolledBack('web') && (
+                <b className={styles.rolledBack}> rolled back</b>
+              )}
+            </span>
           </div>
-          <RemoteSlot
-            label="Web remote"
-            loader={() => import('web/WebWidget')}
-          />
+          <RemoteSlot label="Web remote" loader={loadWeb} />
         </section>
 
         <section className={`ui-card ${styles.remote}`}>
           <div className={styles.remoteHeader}>
             <h2>Dashboard remote</h2>
-            <span className={styles.origin}>localhost:4201</span>
+            <span className={styles.origin} data-testid="dashboard-origin">
+              {urlOf('dashboard')}
+              {rolledBack('dashboard') && (
+                <b className={styles.rolledBack}> rolled back</b>
+              )}
+            </span>
           </div>
-          <RemoteSlot
-            label="Dashboard remote"
-            loader={() => import('dashboard/DashboardWidget')}
-          />
+          <RemoteSlot label="Dashboard remote" loader={loadDashboard} />
+        </section>
+
+        <section className={`ui-card ${styles.remote}`}>
+          <div className={styles.remoteHeader}>
+            <h2>Legacy remote</h2>
+            <span className={styles.origin} data-testid="legacy-origin">
+              {urlOf('legacy')}
+              {rolledBack('legacy') && (
+                <b className={styles.rolledBack}> rolled back</b>
+              )}
+            </span>
+          </div>
+          <ForeignRemote label="Legacy remote" loader={loadLegacy} />
         </section>
       </div>
 

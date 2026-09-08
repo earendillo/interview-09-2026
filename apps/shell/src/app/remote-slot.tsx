@@ -2,6 +2,7 @@ import {
   Component,
   Suspense,
   lazy,
+  useMemo,
   type ComponentType,
   type ReactNode,
 } from 'react';
@@ -48,7 +49,7 @@ interface RemoteSlotProps {
 
 /** Renders one federated component with its own loading and error fallback. */
 export function RemoteSlot({ label, loader }: RemoteSlotProps) {
-  const Remote = lazy(loader);
+  const Remote = useMemo(() => lazy(loader), [loader]);
 
   return (
     <RemoteErrorBoundary label={label}>

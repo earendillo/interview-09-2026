@@ -10,6 +10,9 @@
       "path": "./apps/dashboard"
     },
     {
+      "path": "./apps/legacy"
+    },
+    {
       "path": "./apps/shell"
     },
     {
