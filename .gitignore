@@ -5,6 +5,9 @@ dist
 tmp
 out-tsc
 
+# Module Federation build artifacts (diagnostics, generated manifests)
+.mf
+
 # dependencies
 node_modules
 
