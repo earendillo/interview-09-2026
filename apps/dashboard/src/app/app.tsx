@@ -1,5 +1,6 @@
 import { Button } from '@interview/ui';
 import { getAuthStatus } from '@interview/auth';
+import { SessionConsumer } from '../features/session-consumer/session-consumer';
 import styles from './app.module.scss';
 
 /** Static placeholder figures - this app exists to be a second remote. */
@@ -36,6 +37,8 @@ export function App() {
         </div>
         <Button label="Dashboard Action" />
       </section>
+
+      <SessionConsumer />
     </div>
   );
 }

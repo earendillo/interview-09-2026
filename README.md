@@ -4,8 +4,8 @@ A minimal Nx monorepo used as a domain-neutral technical playground: several
 React applications, a trivial HTTP API, shared libraries, and mechanically
 enforced dependency boundaries.
 
-The workspace foundation plus a minimal Module Federation setup. Authentication,
-CI/CD, and other topics are intentionally not implemented yet.
+The workspace foundation, a Module Federation setup, and a cookie-based session
+shared across two of the applications. CI/CD is intentionally not implemented.
 
 ## Repository structure
 
@@ -15,12 +15,13 @@ apps/
   web/              React application, Module Federation remote (port 4200)
   dashboard/        React application, Module Federation remote (port 4201)
   legacy/           React 17 application, Module Federation remote (port 4203)
-  api/              Minimal HTTP service, in-memory data (port 3333)
+  api/              Minimal HTTP service, in-memory data, session (port 3333)
   web-e2e/          Playwright end-to-end tests for `web`
 
 libraries/
   ui/               Shared UI components          (type:shared-lib)
-  auth/             Shared auth utilities         (type:shared-lib)
+  auth/             Session client + permissions  (type:shared-lib)
+                    (`@interview/auth/server` holds the server-only signing)
   shared/           Shared types/utilities        (type:shared-lib)
   internal-tools/   Internal-only utilities       (type:internal-lib)
 
@@ -35,8 +36,13 @@ Cross-project imports use the `@interview/*` workspace aliases:
 ```ts
 import { Button } from '@interview/ui';
 import type { Item } from '@interview/shared';
-import { getAuthStatus } from '@interview/auth';
+import { useSession } from '@interview/auth';
 ```
+
+`@interview/auth` also has a second entry point, `@interview/auth/server`, for
+the parts that need `node:crypto`. See
+[docs/authentication.md § 6](docs/authentication.md) for why that split exists
+and the test that keeps it honest.
 
 Deep relative imports across project boundaries (`../../../libraries/ui/src`)
 are not allowed; within a project, relative imports are fine.
@@ -210,6 +216,30 @@ pnpm nx dev @interview/web
 See [docs/item-filter-demo.md](docs/item-filter-demo.md) for the measurements,
 the local state vs. Context vs. React Query reasoning, and the walkthrough.
 
+## Authentication across applications
+
+A session carried by two HttpOnly cookies — a 60-second HS256 access token and
+a longer-lived, revocable, rotating refresh token — enforced entirely in the
+API. `web` (:4200) has the sign-in panel; `dashboard` (:4201) has no login form
+at all and recognises the same session by calling `/api/auth/me` with
+`credentials: 'include'`, because an HttpOnly cookie is not something an
+application can read or pass along.
+
+```bash
+pnpm nx serve @interview/api        # :3333
+pnpm nx dev @interview/web          # :4200 — sign in (alice/alice-password)
+pnpm nx dev @interview/dashboard    # :4201 — then press "Re-check session"
+```
+
+Demonstrated end to end: sign-in, the session surviving a reload with zero
+client-side storage, silent refresh after the access token expires, 401 vs 403
+for permissions, and logout revoking the token server-side rather than only
+clearing a cookie.
+
+See [docs/authentication.md](docs/authentication.md) for the browser–server
+flow, the enforcement table, and the boundary between what is demo shape and
+what is production shape.
+
 ## Testing and accessibility
 
 The item-filtering feature above doubles as the testing example: unit tests
@@ -223,6 +253,11 @@ activation also dropped keyboard focus) and its fix.
 pnpm nx test @interview/web        # unit + integration + axe
 pnpm nx e2e @interview/web-e2e     # starts the API and web dev server itself
 ```
+
+The session gets the same treatment — see
+[docs/authentication.md § 8](docs/authentication.md) for its own pyramid,
+including a bundler-level regression test for a bug that only a real browser
+could catch.
 
 See [docs/testing-and-accessibility.md](docs/testing-and-accessibility.md) for
 the pyramid, what is mocked at each level, the accessibility
@@ -250,8 +285,9 @@ still loads without them, showing a fallback per missing remote.
 
 ### API
 
-The API keeps an in-memory dataset — no database, no authentication. It exists
-so later examples have a real HTTP boundary.
+The API keeps an in-memory dataset and an in-memory session store — no
+database. `/api/items` is public on purpose; `/api/reports/summary` requires
+the `items:write` permission.
 
 ```bash
 curl http://localhost:3333/api/items
@@ -262,6 +298,14 @@ curl http://localhost:3333/api/items/1
 
 curl -i http://localhost:3333/api/items/999
 # HTTP/1.1 404 Not Found
+
+curl -i -X POST http://localhost:3333/api/auth/login   -H 'Content-Type: application/json'   -d '{"username":"alice","password":"alice-password"}'
+# HTTP/1.1 200 OK
+# Set-Cookie: access_token=…;  Path=/;         Max-Age=60;  HttpOnly; SameSite=Lax
+# Set-Cookie: refresh_token=…; Path=/api/auth; Max-Age=900; HttpOnly; SameSite=Lax
+
+curl -i http://localhost:3333/api/reports/summary
+# HTTP/1.1 401 Unauthorized   {"error":"Not signed in","code":"no_session"}
 ```
 
 The `Item` type is defined once in `@interview/shared` and used by both the API
@@ -287,6 +331,7 @@ pnpm verify:boundaries   # expects the invalid app -> internal-lib import to fai
 - [ESLint](https://eslint.org) — linting and dependency enforcement
 - [Vite](https://vite.dev) / [Vitest](https://vitest.dev) — dev server, bundler, tests
 - [Module Federation](https://module-federation.io) — runtime composition of the three React apps
+- HS256 JWT + rotating refresh tokens — hand-written, ~110 lines, no auth library
 - [Playwright](https://playwright.dev) — end-to-end tests
 - [Testing Library](https://testing-library.com) / [jest-axe](https://github.com/nickcolley/jest-axe) — component and accessibility tests
 - [esbuild](https://esbuild.github.io) — API bundling

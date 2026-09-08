@@ -1,26 +1,15 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import type { AccessTokenClaims, JwtPayload } from './claims';
 
 /**
  * A deliberately small HS256 implementation. The interview question is about
  * where a session is enforced, so the signing is kept visible and dependency
  * free rather than delegated to a library.
+ *
+ * SERVER ONLY. This module uses `node:crypto` and `Buffer`, so it is reachable
+ * through `@interview/auth/server` and never through `@interview/auth`. The
+ * signing key lives on the server; a browser has no business holding one.
  */
-
-/** The claims this system puts in an access token. */
-export interface AccessTokenClaims {
-  /** The user the token speaks for. */
-  sub: string;
-  /** Authorization data carried in the token, so `/api` needs no user lookup. */
-  permissions: string[];
-}
-
-/** Claims plus the timestamps `signJwt` adds. */
-export interface JwtPayload extends AccessTokenClaims {
-  /** Issued at, epoch seconds. */
-  iat: number;
-  /** Expires at, epoch seconds. */
-  exp: number;
-}
 
 export interface SignOptions {
   secret: string;

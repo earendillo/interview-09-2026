@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@interview/auth';
  *
  * Note that `permissions` live with the user, not in the token store. A token
  * is a snapshot of them taken at login, which is why a permission change only
- * takes effect on the next refresh - see phase6.md.
+ * takes effect on the next refresh - see docs/authentication.md.
  */
 
 export interface User {

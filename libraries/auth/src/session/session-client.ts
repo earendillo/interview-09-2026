@@ -1,9 +1,13 @@
 import { apiFetch } from './api-fetch';
 
 /**
- * The API calls this feature makes, in one place.
+ * The session calls, in one place, shared by every application.
  *
- * All of them are relative, so the Vite dev proxy forwards them to
+ * This lives in a library rather than in one app because the whole point of an
+ * HttpOnly session is that any app can ask about it: `web` signs in, and
+ * `dashboard` recognises the result without ever handling a credential.
+ *
+ * The URLs are relative, so each app's Vite dev proxy forwards them to
  * http://localhost:3333 and the cookies stay same-origin - no CORS, no
  * `credentials` special-casing beyond what `apiFetch` already does.
  */
@@ -21,10 +25,6 @@ export interface Session {
 
 export type LoginResult =
   { ok: true; user: SessionUser } | { ok: false; error: string };
-
-export type ReportResult =
-  | { ok: true; itemCount: number; requestedBy: string }
-  | { ok: false; error: string };
 
 async function json<T>(response: Response): Promise<Partial<T>> {
   try {
@@ -69,35 +69,4 @@ export async function logout(): Promise<void> {
   // Not `apiFetch`: logging out must not try to refresh a session it is in the
   // middle of ending.
   await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-}
-
-/** A call that needs `items:write`, so a 403 is reachable from the UI. */
-export async function loadReport(): Promise<ReportResult> {
-  const response = await apiFetch('/api/reports/summary');
-  const body = await json<{
-    itemCount: number;
-    requestedBy: string;
-    required: string;
-    code: string;
-  }>(response);
-
-  if (response.status === 403) {
-    return {
-      ok: false,
-      error: `403 Forbidden - this account is missing ${body.required ?? 'a permission'}`,
-    };
-  }
-
-  if (!response.ok) {
-    return {
-      ok: false,
-      error: `${response.status} - ${body.code ?? 'failed'}`,
-    };
-  }
-
-  return {
-    ok: true,
-    itemCount: body.itemCount ?? 0,
-    requestedBy: body.requestedBy ?? '',
-  };
 }

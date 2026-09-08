@@ -57,7 +57,7 @@ function serialize(
     'HttpOnly',
     // Lax over None because this demo is same-site through the Vite dev proxy.
     // Genuinely cross-site apps need `SameSite=None; Secure` plus CORS with
-    // credentials - see phase6.md.
+    // credentials - see docs/authentication.md.
     'SameSite=Lax',
   ].join('; ');
 }

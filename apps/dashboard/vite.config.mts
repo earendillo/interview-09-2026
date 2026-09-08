@@ -12,6 +12,15 @@ export default defineConfig(() => ({
     // Absolute URLs for assets referenced from the remote entry, so the shell
     // resolves them against this dev server rather than its own origin.
     origin: 'http://localhost:4201',
+    // Same proxy as `web`, pointed at the same API. That is what puts both
+    // apps on the `localhost` cookie jar, so the session established at :4200
+    // is visible here at :4201 without either app passing a token to the other.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     react(),

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { loadReport, type ReportResult } from './session-client';
-import { useSession } from './use-session';
+import { useSession } from '@interview/auth';
+import { loadReport, type ReportResult } from './report-client';
 import styles from './auth-demo.module.scss';
 
 /**

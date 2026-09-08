@@ -1,9 +1,7 @@
-import {
-  hasPermission,
-  signJwt,
-  verifyJwt,
-  type JwtPayload,
-} from '@interview/auth';
+import { hasPermission, type JwtPayload } from '@interview/auth';
+// Signing lives behind the server entry point: it needs `node:crypto`, and
+// keeping it out of `@interview/auth` is what stops it reaching a browser bundle.
+import { signJwt, verifyJwt } from '@interview/auth/server';
 import type { ApiRequest, ApiResponse } from '../http';
 import {
   COOKIE,
