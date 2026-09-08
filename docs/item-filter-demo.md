@@ -15,7 +15,11 @@ apps/web/src/features/item-filter-demo/
 ├── item-api.ts                   the single fetch + an HTTP request counter
 ├── filter-items.ts               pure filter (items + filter -> visibleItems)
 ├── expensive-score.ts            a deliberately slow pure calculation
-└── item-filter-demo.spec.tsx     tests (HTTP boundary mocked)
+├── filter-field.tsx              the filter input, clear button and live region
+├── filter-items.spec.ts          unit tests for the pure filter
+├── filter-field.spec.tsx         unit tests for the filter control
+├── item-filter-demo.spec.tsx     integration tests (HTTP boundary mocked)
+└── item-filter-demo.a11y.spec.tsx  axe accessibility check
 ```
 
 It is mounted in `apps/web/src/app/app.tsx`, below the rendering demo. The
@@ -228,3 +232,10 @@ unrelated update while the optimized one does not; the optimized panel
 recomputes exactly once when the filter changes and produces the same result as
 the unoptimized one; and the memoised list still rerenders on a real prop
 change.
+
+## Tests and accessibility
+
+This feature is also the subject of the testing/accessibility phase - the
+pyramid across these spec files, the Playwright journey in `apps/web-e2e`, and
+the accessible-name/focus bug in `filter-field.tsx` are all written up in
+[testing-and-accessibility.md](testing-and-accessibility.md).

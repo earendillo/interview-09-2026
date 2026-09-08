@@ -20,6 +20,7 @@
     "src/**/*.test.ts",
     "src/**/*.spec.tsx",
     "src/**/*.test.tsx",
+    "src/test-setup.ts",
     "vite.config.ts",
     "vite.config.mts",
     "eslint.config.js",

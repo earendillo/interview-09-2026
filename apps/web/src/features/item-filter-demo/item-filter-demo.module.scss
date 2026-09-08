@@ -106,7 +106,15 @@
   letter-spacing: 0.05em;
 }
 
+.fieldRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
 .input {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: var(--space-2) var(--space-3);
   background: var(--color-canvas);
   color: var(--color-text);
@@ -119,6 +127,38 @@
 .input:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 1px;
+}
+
+// The clear button. `min-width`/`min-height` keep it a comfortable target
+// even though its only visible content is a single glyph.
+.clear {
+  flex: 0 0 auto;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clear:hover {
+  color: var(--color-text);
+}
+
+.clear:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+// Announced politely by `role="status"`; visible because sighted users need
+// the same feedback the live region gives everyone else.
+.live {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  min-height: 1.2em;
 }
 
 // --- counters ---------------------------------------------------------------

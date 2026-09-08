@@ -15,6 +15,7 @@ apps/
   web/              React application, Module Federation remote (port 4200)
   dashboard/        React application, Module Federation remote (port 4201)
   api/              Minimal HTTP service, in-memory data (port 3333)
+  web-e2e/          Playwright end-to-end tests for `web`
 
 libraries/
   ui/               Shared UI components          (type:shared-lib)
@@ -174,6 +175,24 @@ pnpm nx dev @interview/web
 See [docs/item-filter-demo.md](docs/item-filter-demo.md) for the measurements,
 the local state vs. Context vs. React Query reasoning, and the walkthrough.
 
+## Testing and accessibility
+
+The item-filtering feature above doubles as the testing example: unit tests
+for the pure filter and for the filter control in isolation, an integration
+test over the whole feature with only `fetch` mocked, one Playwright journey
+in `apps/web-e2e`, and an axe (`jest-axe`) accessibility check - together with
+a documented accessibility bug (an icon button with no accessible name, whose
+activation also dropped keyboard focus) and its fix.
+
+```bash
+pnpm nx test @interview/web        # unit + integration + axe
+pnpm nx e2e @interview/web-e2e     # starts the API and web dev server itself
+```
+
+See [docs/testing-and-accessibility.md](docs/testing-and-accessibility.md) for
+the pyramid, what is mocked at each level, the accessibility
+problem/cause/fix/verification, and the walkthrough.
+
 ## Getting started
 
 ```bash
@@ -219,6 +238,7 @@ pnpm nx run-many -t lint
 pnpm nx run-many -t typecheck
 pnpm nx run-many -t test
 pnpm nx run-many -t build
+pnpm nx e2e @interview/web-e2e
 pnpm verify:boundaries   # expects the invalid app -> internal-lib import to fail
 ```
 
@@ -231,4 +251,6 @@ pnpm verify:boundaries   # expects the invalid app -> internal-lib import to fai
 - [ESLint](https://eslint.org) — linting and dependency enforcement
 - [Vite](https://vite.dev) / [Vitest](https://vitest.dev) — dev server, bundler, tests
 - [Module Federation](https://module-federation.io) — runtime composition of the three React apps
+- [Playwright](https://playwright.dev) — end-to-end tests
+- [Testing Library](https://testing-library.com) / [jest-axe](https://github.com/nickcolley/jest-axe) — component and accessibility tests
 - [esbuild](https://esbuild.github.io) — API bundling

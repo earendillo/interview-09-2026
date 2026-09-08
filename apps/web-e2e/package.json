@@ -1,0 +1,26 @@
+{
+  "name": "@interview/web-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "projectType": "application",
+    "tags": [
+      "type:app"
+    ],
+    "implicitDependencies": [
+      "@interview/web",
+      "@interview/api"
+    ],
+    "targets": {
+      "e2e": {
+        "executor": "@nx/playwright:playwright",
+        "outputs": [
+          "{projectRoot}/test-output"
+        ],
+        "options": {
+          "config": "apps/web-e2e/playwright.config.ts"
+        }
+      }
+    }
+  }
+}

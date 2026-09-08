@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Button } from '@interview/ui';
 import { expensiveScore } from './expensive-score';
+import { FilterField } from './filter-field';
 import { filterItems } from './filter-items';
 import { MemoItemList } from './item-list';
 import { Stat } from './stat';
@@ -56,16 +57,13 @@ export function OptimizedPanel({ items }: PanelProps) {
         <span className={styles.tag}>derived when inputs change</span>
       </div>
 
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>Filter</span>
-        <input
-          className={styles.input}
-          value={filter}
-          placeholder="e.g. 12"
-          data-testid="after-filter"
-          onChange={(event) => setFilter(event.target.value)}
-        />
-      </label>
+      <FilterField
+        testId="after"
+        value={filter}
+        onChange={setFilter}
+        matchCount={visibleItems.length}
+        totalCount={items.length}
+      />
 
       <div className={styles.stats}>
         <Stat label="Items" value={items.length} testId="after-total" />

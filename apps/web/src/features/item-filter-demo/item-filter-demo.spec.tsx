@@ -1,16 +1,24 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Item } from '@interview/shared';
-import { filterItems } from './filter-items';
 import { ItemFilterDemo } from './item-filter-demo';
 import { resetRequestCount } from './item-api';
 
 /**
- * The HTTP boundary is mocked; everything below it is the real component.
+ * INTEGRATION - the whole feature, from the fetch to the rendered rows.
  *
- * These tests assert the behaviour the demo is about - how often the derived
- * calculation ran, how many requests were made, what the filter produced -
- * rather than markup details.
+ * The only mock is `fetch`. It is a genuine external boundary: it would make
+ * a real network call, the test has to control the payload to assert on
+ * derived counts, and its call count is itself part of what is under test
+ * ("filtering makes no further request"). Everything below it is the real
+ * thing - `useItems`, both panels, `filterItems`, `expensiveScore`,
+ * `FilterField` and the `memo`ised list all run unmodified. No React
+ * component is stubbed: replacing a panel with a fake would delete exactly
+ * the wiring these tests exist to cover.
+ *
+ * The assertions are about behaviour the feature promises - how often the
+ * derived calculation ran, how many requests were made, what the filter
+ * produced - not about markup details.
  *
  * Note: no `<StrictMode>` here, so render counters step by 1 per update. In
  * the browser they step by 2 and the fetch effect runs twice.
@@ -120,6 +128,34 @@ describe('filtering', () => {
     expect(count('after-visible')).toBe(API_ITEMS.length);
   });
 
+  it('clears the filter from the clear button and restores the full list', async () => {
+    await renderLoaded();
+
+    // The user flow, driven the way a user drives it: the button does not
+    // exist until there is something to clear.
+    expect(screen.queryByTestId('after-clear')).toBeNull();
+
+    type('after-filter', '12');
+    expect(count('after-visible')).toBe(1);
+
+    fireEvent.click(screen.getByTestId('after-clear'));
+
+    expect(count('after-visible')).toBe(API_ITEMS.length);
+    expect(screen.queryByTestId('after-clear')).toBeNull();
+    // Focus survived the update that removed the button the user activated.
+    expect(screen.getByTestId('after-filter')).toHaveFocus();
+  });
+
+  it('announces the match count in a live region as the filter changes', async () => {
+    await renderLoaded();
+
+    type('after-filter', '12');
+
+    expect(screen.getByTestId('after-live').textContent).toBe(
+      `1 of ${API_ITEMS.length} items match “12”`,
+    );
+  });
+
   it('makes no further HTTP request when the filter changes', async () => {
     await renderLoaded();
 
@@ -130,34 +166,6 @@ describe('filtering', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(count('request-count')).toBe(1);
-  });
-});
-
-describe('filterItems', () => {
-  it('returns a new array and leaves the input untouched', () => {
-    const items: Item[] = [
-      { id: 1, name: 'Item 1' },
-      { id: 2, name: 'Item 2' },
-    ];
-    const snapshot = JSON.stringify(items);
-
-    const visible = filterItems(items, '2');
-
-    expect(visible).toEqual([{ id: 2, name: 'Item 2' }]);
-    expect(visible).not.toBe(items);
-    expect(JSON.stringify(items)).toBe(snapshot);
-  });
-
-  it('returns the original array reference for an empty filter', () => {
-    const items: Item[] = [{ id: 1, name: 'Item 1' }];
-
-    expect(filterItems(items, '   ')).toBe(items);
-  });
-
-  it('matches case-insensitively', () => {
-    const items: Item[] = [{ id: 1, name: 'Item 1' }];
-
-    expect(filterItems(items, 'ITEM')).toHaveLength(1);
   });
 });
 

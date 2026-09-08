@@ -49,6 +49,9 @@ export function ItemList({
                   ? `${styles.row} ${styles.rowSelected}`
                   : styles.row
               }
+              // Selection is otherwise conveyed by colour alone, which a
+              // screen-reader user never receives.
+              aria-pressed={item.id === selectedId}
               onClick={() => onSelect(item.id)}
             >
               {item.name}

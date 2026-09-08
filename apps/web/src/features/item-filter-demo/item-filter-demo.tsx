@@ -45,8 +45,12 @@ export function ItemFilterDemo() {
 
       {status === 'loading' && <p className={styles.intro}>Loading items…</p>}
 
+      {/* `role="alert"` on the failure below: it replaces the panels with no
+          navigation and no focus change, so without a live region a
+          screen-reader user is left on a page that silently lost its
+          content. */}
       {status === 'error' && (
-        <p className={styles.error} data-testid="items-error">
+        <p className={styles.error} role="alert" data-testid="items-error">
           {error} — start the API with <code>pnpm nx serve @interview/api</code>
           .
         </p>

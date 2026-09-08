@@ -26,6 +26,9 @@
     },
     {
       "path": "./libraries/ui"
+    },
+    {
+      "path": "./apps/web-e2e"
     }
   ]
 }
