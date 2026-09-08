@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { Item } from '@interview/shared';
+import { ITEM_COUNT } from './items';
 import { route } from './router';
 
 describe('route', () => {
@@ -6,11 +8,12 @@ describe('route', () => {
     const { status, body } = route('GET', '/api/items');
 
     expect(status).toBe(200);
-    expect(body).toEqual([
-      { id: 1, name: 'Item 1' },
-      { id: 2, name: 'Item 2' },
-      { id: 3, name: 'Item 3' },
-    ]);
+    expect(body).toHaveLength(ITEM_COUNT);
+    expect((body as Item[])[0]).toEqual({ id: 1, name: 'Item 1' });
+    expect((body as Item[])[ITEM_COUNT - 1]).toEqual({
+      id: ITEM_COUNT,
+      name: `Item ${ITEM_COUNT}`,
+    });
   });
 
   it('returns a single item by id', () => {

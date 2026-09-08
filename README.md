@@ -141,7 +141,7 @@ Two deliberate choices worth knowing:
   variables.** They survive compilation, need no `@use` plumbing through pnpm
   symlinks, and can be re-pointed at runtime - which is all the dark theme is.
 - **Component styles are CSS Modules.** A federated remote's styles are injected
-  into the *host's* document, so scoped class names are what keeps `web` and
+  into the _host's_ document, so scoped class names are what keeps `web` and
   `dashboard` from colliding inside `shell`.
 
 ## React rendering demonstration
@@ -153,6 +153,26 @@ dependency-array behaviour. React version in use: **19.0.0**.
 
 See [docs/react-rendering-demo.md](docs/react-rendering-demo.md) for the
 explanation and the live walkthrough.
+
+## Filtering and derived-data performance
+
+`apps/web` contains a second feature (`src/features/item-filter-demo/`) built on
+the existing `GET /api/items`: the result is fetched once into local state, and
+a text filter derives `visibleItems` from it without ever touching the fetched
+array or the network. Two panels run the same UI side by side - one deriving
+everything on every render, one using `useMemo`/`useCallback` - with render,
+filter, calculation and HTTP-request counters plus a `performance.now()` timing.
+
+The API fixture serves 500 items so the difference is observable, and the web
+dev server proxies `/api` to the API on port 3333. Start both:
+
+```bash
+pnpm nx serve @interview/api
+pnpm nx dev @interview/web
+```
+
+See [docs/item-filter-demo.md](docs/item-filter-demo.md) for the measurements,
+the local state vs. Context vs. React Query reasoning, and the walkthrough.
 
 ## Getting started
 

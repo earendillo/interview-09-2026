@@ -12,6 +12,14 @@ export default defineConfig(() => ({
     // Absolute URLs for assets referenced from the remote entry, so the shell
     // resolves them against this dev server rather than its own origin.
     origin: 'http://localhost:4200',
+    // The item demo fetches a relative `/api/items`, so it needs no CORS
+    // handling in the API and no environment-specific base URL in the client.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     react(),

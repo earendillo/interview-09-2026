@@ -1,6 +1,17 @@
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './app';
+
+// The item demo fetches on mount; this suite is only about the shell markup,
+// so the HTTP boundary is stubbed rather than exercised.
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] }),
+  );
+});
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('App', () => {
   it('renders the heading and the item list', () => {
