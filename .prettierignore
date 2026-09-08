@@ -1,6 +1,13 @@
-# Add files here to ignore them from prettier formatting
-/dist
-/coverage
-/.nx/cache
-/.nx/workspace-data
-.nx/self-healing
+# Files excluded from Prettier formatting.
+#
+# Prettier 3 also honours .gitignore by default, so build output and Nx caches
+# are already excluded by it. The entries below keep this file self-sufficient
+# if Prettier is ever run with an explicit --ignore-path.
+
+# Build output
+dist
+out-tsc
+coverage
+
+# Nx local caches and generated workspace state
+.nx/

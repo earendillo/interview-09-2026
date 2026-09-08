@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "tsBuildInfoFile": "out-tsc/build/tsconfig.build.tsbuildinfo"
+  },
+  "references": [
+    {
+      "path": "../../libraries/shared/tsconfig.lib.json"
+    }
+  ]
+}

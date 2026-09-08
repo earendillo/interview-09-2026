@@ -1,0 +1,16 @@
+{
+  "name": "@interview/web",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "projectType": "application",
+    "tags": [
+      "type:app"
+    ]
+  },
+  "devDependencies": {
+    "@interview/auth": "workspace:*",
+    "@interview/shared": "workspace:*",
+    "@interview/ui": "workspace:*"
+  }
+}

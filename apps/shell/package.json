@@ -1,0 +1,14 @@
+{
+  "name": "@interview/shell",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "projectType": "application",
+    "tags": [
+      "type:app"
+    ]
+  },
+  "devDependencies": {
+    "@interview/ui": "workspace:*"
+  }
+}

@@ -23,8 +23,16 @@ export default [
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
             {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
+              sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: ['type:shared-lib'],
+            },
+            {
+              sourceTag: 'type:shared-lib',
+              onlyDependOnLibsWithTags: ['type:shared-lib'],
+            },
+            {
+              sourceTag: 'type:internal-lib',
+              onlyDependOnLibsWithTags: ['type:shared-lib', 'type:internal-lib'],
             },
           ],
         },
@@ -42,7 +50,6 @@ export default [
       '**/*.cjs',
       '**/*.mjs',
     ],
-    // Override or add rules here
     rules: {},
   },
 ];

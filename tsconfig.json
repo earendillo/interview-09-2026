@@ -7,31 +7,25 @@
       "path": "./apps/api"
     },
     {
-      "path": "./apps/shop-e2e"
+      "path": "./apps/dashboard"
     },
     {
-      "path": "./apps/shop"
+      "path": "./apps/shell"
     },
     {
-      "path": "./packages/api/products"
+      "path": "./apps/web"
     },
     {
-      "path": "./packages/shared/models"
+      "path": "./libraries/auth"
     },
     {
-      "path": "./packages/shop/data"
+      "path": "./libraries/internal-tools"
     },
     {
-      "path": "./packages/shop/feature-product-detail"
+      "path": "./libraries/shared"
     },
     {
-      "path": "./packages/shop/feature-products"
-    },
-    {
-      "path": "./packages/shop/shared-ui"
-    },
-    {
-      "path": "./packages/shared/test-utils"
+      "path": "./libraries/ui"
     }
   ]
 }
