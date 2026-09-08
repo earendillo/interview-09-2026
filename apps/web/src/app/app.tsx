@@ -1,6 +1,8 @@
 import type { Item } from '@interview/shared';
 import { getAuthStatus } from '@interview/auth';
 import { Button } from '@interview/ui';
+import { ReactRenderingDemo } from '../features/react-rendering-demo/react-rendering-demo';
+import styles from './app.module.scss';
 
 const items: Item[] = [
   { id: 1, name: 'Item 1' },
@@ -9,15 +11,34 @@ const items: Item[] = [
 
 export function App() {
   return (
-    <div>
-      <h1>Web Application</h1>
-      <p>Auth status: {getAuthStatus()}</p>
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
-      <Button label="Click me" />
+    <div className="ui-page">
+      <header className="ui-header">
+        <h1 className="ui-header__title">Web Application</h1>
+        <span className="ui-badge">remote · :4200</span>
+        <p className="ui-header__subtitle">
+          Module Federation remote, and the home of the React rendering
+          demonstration below.
+        </p>
+      </header>
+
+      <section className="ui-card">
+        <h2 className="ui-card__title">Workspace wiring</h2>
+        <p className={styles.status}>
+          Auth status: <code>{getAuthStatus()}</code>
+        </p>
+        <ul className={styles.itemList} data-testid="item-list">
+          {items.map((item) => (
+            <li key={item.id} className={styles.item}>
+              {item.name}
+            </li>
+          ))}
+        </ul>
+        <div className={styles.actions}>
+          <Button label="Click me" />
+        </div>
+      </section>
+
+      <ReactRenderingDemo />
     </div>
   );
 }

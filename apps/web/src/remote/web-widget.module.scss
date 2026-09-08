@@ -1,0 +1,21 @@
+// Scoped with CSS Modules on purpose: this component is injected into the
+// shell's document, so a global class name here could collide with the host's
+// or with the other remote's.
+.widget {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.origin {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}

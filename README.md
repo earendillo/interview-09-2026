@@ -115,6 +115,45 @@ See [docs/dependency-boundaries.md](docs/dependency-boundaries.md) for details,
 for how to reproduce the intentionally invalid dependency, and for the
 distinction between production experience and this playground.
 
+## Styling
+
+SCSS (dart-sass, compiled by Vite - no CSS framework). The layering is:
+
+```
+libraries/ui/src/styles/
+  _tokens.scss    design tokens as CSS custom properties (+ dark theme)
+  _reset.scss     small reset
+  _mixins.scss    card / focus-ring / mono, used inside the library
+  base.scss       the one global stylesheet: tokens + reset + `ui-*` primitives
+
+<project>/**/*.module.scss   everything component-specific, scoped by CSS Modules
+```
+
+Each application imports the global sheet once, in its `main.tsx`:
+
+```ts
+import '@interview/ui/styles/base.scss';
+```
+
+Two deliberate choices worth knowing:
+
+- **Tokens cross the package boundary as CSS custom properties, not SCSS
+  variables.** They survive compilation, need no `@use` plumbing through pnpm
+  symlinks, and can be re-pointed at runtime - which is all the dark theme is.
+- **Component styles are CSS Modules.** A federated remote's styles are injected
+  into the *host's* document, so scoped class names are what keeps `web` and
+  `dashboard` from colliding inside `shell`.
+
+## React rendering demonstration
+
+`apps/web` contains a small feature (`src/features/react-rendering-demo/`) that
+demonstrates initial render vs. rerender, an unnecessary rerender of a
+`React.memo` child, its fix with `useMemo`/`useCallback`, and `useEffect`
+dependency-array behaviour. React version in use: **19.0.0**.
+
+See [docs/react-rendering-demo.md](docs/react-rendering-demo.md) for the
+explanation and the live walkthrough.
+
 ## Getting started
 
 ```bash

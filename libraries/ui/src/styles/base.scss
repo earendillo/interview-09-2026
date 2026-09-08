@@ -1,0 +1,140 @@
+// The single global stylesheet. Each application imports it once, from its
+// `main.tsx`:
+//
+//   import '@interview/ui/styles/base.scss';
+//
+// It contains three things and nothing else: the tokens, the reset, and the
+// handful of layout primitives that all three applications share. Everything
+// component-specific lives in a `*.module.scss` next to its component, so a
+// federated remote cannot collide with its host's class names.
+
+@use 'tokens';
+@use 'reset';
+@use 'mixins' as *;
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+code,
+kbd,
+samp {
+  @include mono(0.9em);
+
+  padding: 0.1em 0.35em;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+:focus-visible {
+  @include focus-ring;
+}
+
+hr {
+  height: 1px;
+  margin: var(--space-6) 0;
+  border: 0;
+  background: var(--color-border);
+}
+
+// ---------------------------------------------------------------------------
+// Shared layout primitives.
+//
+// Global class names, prefixed to make their origin obvious. They are safe
+// inside a Module Federation host because every application gets the same
+// definitions from this one file.
+// ---------------------------------------------------------------------------
+
+.ui-page {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.ui-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ui-header__title {
+  margin-right: auto;
+}
+
+.ui-header__subtitle {
+  width: 100%;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.ui-badge {
+  @include mono(var(--text-xs));
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.ui-card {
+  @include card;
+
+  padding: var(--space-5);
+}
+
+.ui-card__title {
+  margin-bottom: var(--space-3);
+}
+
+.ui-muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

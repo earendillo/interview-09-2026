@@ -5,6 +5,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from 'react';
+import styles from './remote-slot.module.scss';
 
 interface RemoteErrorBoundaryProps {
   label: string;
@@ -28,7 +29,11 @@ class RemoteErrorBoundary extends Component<
 
   override render() {
     if (this.state.failed) {
-      return <p role="status">Unable to load {this.props.label}</p>;
+      return (
+        <p role="status" className={`${styles.message} ${styles.failed}`}>
+          Unable to load {this.props.label}
+        </p>
+      );
     }
     return this.props.children;
   }
@@ -47,7 +52,13 @@ export function RemoteSlot({ label, loader }: RemoteSlotProps) {
 
   return (
     <RemoteErrorBoundary label={label}>
-      <Suspense fallback={<p role="status">Loading {label}...</p>}>
+      <Suspense
+        fallback={
+          <p role="status" className={styles.message}>
+            Loading {label}...
+          </p>
+        }
+      >
         <Remote />
       </Suspense>
     </RemoteErrorBoundary>

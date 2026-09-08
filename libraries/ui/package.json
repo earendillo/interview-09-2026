@@ -11,6 +11,7 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./styles/base.scss": "./src/styles/base.scss",
     "./package.json": "./package.json"
   },
   "nx": {

@@ -1,0 +1,29 @@
+.remotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-5);
+}
+
+.remote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.remoteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.origin {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}
