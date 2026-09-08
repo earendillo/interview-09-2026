@@ -174,6 +174,9 @@ importers:
 
   apps/api:
     devDependencies:
+      '@interview/auth':
+        specifier: workspace:*
+        version: link:../../libraries/auth
       '@interview/shared':
         specifier: workspace:*
         version: link:../../libraries/shared

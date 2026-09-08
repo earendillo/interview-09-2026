@@ -39,6 +39,7 @@
     }
   },
   "devDependencies": {
+    "@interview/auth": "workspace:*",
     "@interview/shared": "workspace:*"
   }
 }

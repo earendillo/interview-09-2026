@@ -1,6 +1,7 @@
 import type { Item } from '@interview/shared';
 import { getAuthStatus } from '@interview/auth';
 import { Button } from '@interview/ui';
+import { AuthDemo } from '../features/auth-demo/auth-demo';
 import { ItemFilterDemo } from '../features/item-filter-demo/item-filter-demo';
 import { ReactRenderingDemo } from '../features/react-rendering-demo/react-rendering-demo';
 import styles from './app.module.scss';
@@ -39,6 +40,7 @@ export function App() {
         </div>
       </section>
 
+      <AuthDemo />
       <ReactRenderingDemo />
       <ItemFilterDemo />
     </div>

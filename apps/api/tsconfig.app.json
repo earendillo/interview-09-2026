@@ -3,7 +3,9 @@
   "compilerOptions": {
     "outDir": "out-tsc/app",
     "tsBuildInfoFile": "out-tsc/app/tsconfig.app.tsbuildinfo",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "rootDir": "src"
   },
   "exclude": [
@@ -14,8 +16,13 @@
     "vitest.config.mts",
     "eslint.config.mjs"
   ],
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "references": [
+    {
+      "path": "../../libraries/auth/tsconfig.lib.json"
+    },
     {
       "path": "../../libraries/shared/tsconfig.lib.json"
     }

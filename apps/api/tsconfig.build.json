@@ -10,6 +10,9 @@
   "references": [
     {
       "path": "../../libraries/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/auth/tsconfig.lib.json"
     }
   ]
 }

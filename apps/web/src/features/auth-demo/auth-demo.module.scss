@@ -1,0 +1,47 @@
+// Styling for the session panel, using the same tokens and spacing rhythm as
+// the demos next door so the page reads as one document.
+
+.state {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 32ch;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.session {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  max-width: 68ch;
+}
+
+.error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
