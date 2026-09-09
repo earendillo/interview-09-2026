@@ -35,7 +35,8 @@
         "options": {
           "buildTarget": "@interview/api:build"
         }
-      }
+      },
+      "format-check": {}
     }
   },
   "devDependencies": {

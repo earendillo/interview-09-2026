@@ -39,13 +39,13 @@ function runs before the next run and on unmount.
 
 Answers to the usual follow-up questions:
 
-| Question | Answer |
-| --- | --- |
-| Does it run after the initial render? | Yes, always — the dependency array only controls *subsequent* runs. |
-| What happens when `someState` changes? | Cleanup (if any) runs, then the effect runs again. |
-| Empty array `[]`? | Runs once after mount, cleanup on unmount. |
-| Dependency is an object created during render? | It is a new reference every render, so the effect runs after **every** render. Depend on the primitive fields instead (`config.id`), or memoise the object. |
-| Dependency omitted (no array at all)? | The effect runs after every render. Omitting a *used value* from a non-empty array is different and worse: the effect closes over a stale value and silently stops reflecting reality. |
+| Question                                       | Answer                                                                                                                                                                                 |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does it run after the initial render?          | Yes, always — the dependency array only controls _subsequent_ runs.                                                                                                                    |
+| What happens when `someState` changes?         | Cleanup (if any) runs, then the effect runs again.                                                                                                                                     |
+| Empty array `[]`?                              | Runs once after mount, cleanup on unmount.                                                                                                                                             |
+| Dependency is an object created during render? | It is a new reference every render, so the effect runs after **every** render. Depend on the primitive fields instead (`config.id`), or memoise the object.                            |
+| Dependency omitted (no array at all)?          | The effect runs after every render. Omitting a _used value_ from a non-empty array is different and worse: the effect closes over a stale value and silently stops reflecting reality. |
 
 The demo shows the last two side by side: `[config]` keeps climbing, while
 `[config.id]` stays at 1.
@@ -56,7 +56,7 @@ The demo shows the last two side by side: `[config]` keeps climbing, while
 render body:
 
 ```tsx
-const user = { id: 1, name: 'Ada' };        // new object every render
+const user = { id: 1, name: 'Ada' }; // new object every render
 const handleSelect = () => setSelectedId(1); // new function every render
 ```
 
@@ -67,7 +67,7 @@ used rather than state because writing to state during render would schedule
 another render. The React DevTools profiler ("Highlight updates when components
 render", or "Why did this render?") shows the same thing without any code.
 
-**Why did it happen?** The child *is* wrapped in `React.memo`, but memo does a
+**Why did it happen?** The child _is_ wrapped in `React.memo`, but memo does a
 shallow comparison of props with `Object.is`, and two structurally identical
 object literals are not the same reference. So memo sees "props changed" and
 renders. This is the key interview point: **`React.memo` on the child cannot fix
@@ -83,11 +83,11 @@ different tool for each problem — deliberately not all three everywhere:
   re-invoke the child regardless.
 - **`useMemo`** — for `expensiveSum(WORK_SIZE)`. It is expensive and pure, and
   it does not depend on `count`, so recomputing it on every increment is wasted
-  work. `useMemo` skips the work *and* keeps the resulting value referentially
+  work. `useMemo` skips the work _and_ keeps the resulting value referentially
   stable for the memoised child. Counter: "Calculations run" stays at 1 on the
   right and climbs on the left.
 - **`useCallback`** — for `handleSelect`. Creating the function is cheap; the
-  reason to wrap it is *identity*, so the child's memo comparison keeps passing.
+  reason to wrap it is _identity_, so the child's memo comparison keeps passing.
 - **Neither** — for the `user` object. It never depends on props or state, so it
   is a module constant (`const USER = ...`) outside the component. The cheapest
   fix is often not a hook.
@@ -114,7 +114,7 @@ Calculations:   6            Calculations:   1
 ```
 
 The parent count is intentionally the same in both columns — the optimization
-was never about the parent. Clicking "Select user" on the right *does* rerender
+was never about the parent. Clicking "Select user" on the right _does_ rerender
 the child, because `isSelected` genuinely changed; memo skips renders, it does
 not block them.
 
@@ -150,7 +150,7 @@ Read about, not used in this repository, and not used in production by me:
 
 - **`useMemo`/`useCallback` and React Compiler.** The React 19 compiler
   auto-memoises component output so most manual `useMemo`/`useCallback` calls
-  become unnecessary. It is opt-in via a Babel plugin and is *not* enabled here
+  become unnecessary. It is opt-in via a Babel plugin and is _not_ enabled here
   — which is precisely why the manual version above is still worth explaining.
 - **`useActionState`, `useOptimistic`, and `use`.** React 19 adds first-class
   handling for async transitions in forms (`useActionState` tracks pending state
@@ -178,7 +178,7 @@ Read about, not used in this repository, and not used in production by me:
    of times.
 8. **Explain the difference.** The parent counter climbs identically; the child
    counter and the calculation counter stay at their initial value. Then click
-   **Select user** on the right to show the child *does* rerender when a prop
+   **Select user** on the right to show the child _does_ rerender when a prop
    really changes — and **Focus child button** for the React 19 ref-as-prop.
 9. **useEffect execution.** In the bottom section: `count + 1` appends a
    `[count]` line; `Unrelated state + 1` rerenders without appending one; the

@@ -75,13 +75,13 @@ BROWSER (:4200)                      API (:3333)
 
 Two token types, because they answer different questions:
 
-|            | access token                              | refresh token                          |
-| ---------- | ----------------------------------------- | -------------------------------------- |
-| form       | JWT (HS256), self-describing              | opaque random bytes                    |
-| state      | none — verified from its signature        | a server-side record                   |
-| lifetime   | 60s (`ACCESS_TTL_SECONDS`)                | 15 min                                 |
-| sent to    | every `/api` request (`Path=/`)           | only `/api/auth/*` (`Path=/api/auth`)  |
-| revocable  | **no** — its TTL _is_ the revocation delay | **yes** — deleting the record ends it |
+|           | access token                               | refresh token                         |
+| --------- | ------------------------------------------ | ------------------------------------- |
+| form      | JWT (HS256), self-describing               | opaque random bytes                   |
+| state     | none — verified from its signature         | a server-side record                  |
+| lifetime  | 60s (`ACCESS_TTL_SECONDS`)                 | 15 min                                |
+| sent to   | every `/api` request (`Path=/`)            | only `/api/auth/*` (`Path=/api/auth`) |
+| revocable | **no** — its TTL _is_ the revocation delay | **yes** — deleting the record ends it |
 
 The access token carries `permissions`, so an authorization check needs no
 database lookup. The price is that it cannot be withdrawn early, which is the
@@ -140,13 +140,13 @@ Each of those puts a credential somewhere a script can read it.
 Every enforcement point is on the server. The client's copies are hints for the
 UI, never decisions.
 
-| Rule                              | Enforced in                                | Failure                                          |
-| --------------------------------- | ------------------------------------------ | ------------------------------------------------ |
-| Is the caller signed in?          | `session.ts` `readAccessToken` → `verifyJwt` | 401 `no_session` / `token_invalid`              |
-| Has the token expired?            | `jwt.ts` `verifyJwt`, `now >= exp`         | 401 `token_expired`                              |
-| May they do this?                 | `session.ts` `authorize` → `hasPermission` | **403** `missing_permission`                     |
-| Is the refresh token still valid? | `refresh-store.ts` `consume`               | 401 `refresh_unknown` / `_expired` / `_reused`   |
-| Has the session been ended?       | `refresh-store.ts` `revoke`, called by logout | the next refresh fails                        |
+| Rule                              | Enforced in                                   | Failure                                        |
+| --------------------------------- | --------------------------------------------- | ---------------------------------------------- |
+| Is the caller signed in?          | `session.ts` `readAccessToken` → `verifyJwt`  | 401 `no_session` / `token_invalid`             |
+| Has the token expired?            | `jwt.ts` `verifyJwt`, `now >= exp`            | 401 `token_expired`                            |
+| May they do this?                 | `session.ts` `authorize` → `hasPermission`    | **403** `missing_permission`                   |
+| Is the refresh token still valid? | `refresh-store.ts` `consume`                  | 401 `refresh_unknown` / `_expired` / `_reused` |
+| Has the session been ended?       | `refresh-store.ts` `revoke`, called by logout | the next refresh fails                         |
 
 Three details worth pointing at:
 
@@ -162,6 +162,15 @@ time, via `timingSafeEqual`) before it reads a single claim.
 **Permissions are re-read on refresh, not copied.** `refresh` looks the user up
 again rather than trusting the old token's claims, so a permission change takes
 effect one refresh later — 60 seconds at worst, not 15 minutes.
+
+**An unusable access token ends the session, expiry excepted.** Every 401 except
+`token_expired` clears _both_ cookies (`session.ts`, `unauthorized`), the
+refresh cookie included. That couples the two tokens' lifetimes in one place, on
+purpose: a `token_invalid` means the credential is junk — tampered, or signed
+with a key this process no longer has — and continuing to hand the browser a
+refresh token after that is offering to resume a session whose other half
+already failed to verify. `token_expired` is the deliberate exception, because
+that cookie is about to be replaced by the refresh.
 
 ## 4. Expiry, refresh and the retry
 
@@ -224,10 +233,10 @@ path match. Clearing it on `/` would leave the original in place.
 }
 ```
 
-This is not decoration. When `lib/jwt.ts` was re-exported from `index.ts`, a
-plain `import { getAuthStatus } from '@interview/auth'` in `apps/web` pulled
-`node:crypto` into the browser bundle, and the application rendered a blank
-page:
+This is not decoration. When `lib/jwt.ts` was re-exported from `index.ts`, any
+`import { … } from '@interview/auth'` in `apps/web` pulled `node:crypto` into
+the browser bundle along with it — `useSession`, `hasPermission`, it did not
+matter which — and the application rendered a blank page:
 
 ```
 Module "node:crypto" has been externalized for browser compatibility.
@@ -244,23 +253,21 @@ bundle, which keeps the guard from passing vacuously:
 ```ts
 // libraries/auth/src/browser-entry.spec.ts
 await build({ entryPoints: [index], bundle: true, platform: 'browser' }); // must succeed
-await expect(build({ entryPoints: [server] /* … */ })).rejects.toThrow(
-  /node:crypto/,
-);
+await expect(build({ entryPoints: [server] /* … */ })).rejects.toThrow(/node:crypto/);
 ```
 
 ## 7. What is a demo and what is production shape
 
 Honest boundaries, since this is a playground:
 
-| Production shape                       | This repo                                      |
-| -------------------------------------- | ---------------------------------------------- |
-| Users in a database                    | `Map` seeded at startup, scrypt-hashed         |
-| Refresh store in Redis / a table       | `Map`, lost on restart                         |
-| Stable `JWT_SECRET`, rotated with a `kid` | env var, else a per-process random key      |
-| `Secure` cookies over HTTPS            | omitted — dev is plain HTTP on localhost       |
-| Access TTL of 5–15 minutes             | **60 seconds**, so expiry is watchable         |
-| A vetted JOSE library                  | ~110 hand-written lines, so it stays readable  |
+| Production shape                          | This repo                                     |
+| ----------------------------------------- | --------------------------------------------- |
+| Users in a database                       | `Map` seeded at startup, scrypt-hashed        |
+| Refresh store in Redis / a table          | `Map`, lost on restart                        |
+| Stable `JWT_SECRET`, rotated with a `kid` | env var, else a per-process random key        |
+| `Secure` cookies over HTTPS               | omitted — dev is plain HTTP on localhost      |
+| Access TTL of 5–15 minutes                | **60 seconds**, so expiry is watchable        |
+| A vetted JOSE library                     | ~110 hand-written lines, so it stays readable |
 
 The parts that are _not_ simplified, because they are the answer to the
 question: the access/refresh split, HttpOnly transport, refresh rotation with
@@ -277,13 +284,13 @@ pnpm nx test @interview/dashboard   # the second app recognising the session
 pnpm nx e2e @interview/web-e2e      # the journey through a real browser
 ```
 
-| Level       | File                                            | What only this level catches                          |
-| ----------- | ----------------------------------------------- | ----------------------------------------------------- |
-| unit        | `libraries/auth/src/lib/jwt.spec.ts`            | tampered signature, `now >= exp`, malformed segments   |
-| unit        | `apps/api/src/app/auth/refresh-store.spec.ts`   | rotation, replay killing the family, expiry            |
-| unit        | `libraries/auth/src/session/api-fetch.spec.ts`  | retry only on `token_expired`, single-flight, no loop  |
-| unit        | `libraries/auth/src/browser-entry.spec.ts`      | a Node builtin reaching a browser bundle               |
-| integration | `apps/api/src/app/auth/session.spec.ts`         | 401 vs 403, cookie clearing, permissions re-read       |
-| integration | `apps/api/src/app/server.spec.ts`               | real HTTP: `Set-Cookie` headers, status codes          |
-| integration | `apps/dashboard/…/session-consumer.spec.tsx`    | the credentialed `/api/auth/me` call, `fetch` mocked   |
-| e2e         | `apps/web-e2e/src/auth.spec.ts`                 | the real cookie jar, `Set-Cookie`, surviving a reload  |
+| Level       | File                                           | What only this level catches                          |
+| ----------- | ---------------------------------------------- | ----------------------------------------------------- |
+| unit        | `libraries/auth/src/lib/jwt.spec.ts`           | tampered signature, `now >= exp`, malformed segments  |
+| unit        | `apps/api/src/app/auth/refresh-store.spec.ts`  | rotation, replay killing the family, expiry           |
+| unit        | `libraries/auth/src/session/api-fetch.spec.ts` | retry only on `token_expired`, single-flight, no loop |
+| unit        | `libraries/auth/src/browser-entry.spec.ts`     | a Node builtin reaching a browser bundle              |
+| integration | `apps/api/src/app/auth/session.spec.ts`        | 401 vs 403, cookie clearing, permissions re-read      |
+| integration | `apps/api/src/app/server.spec.ts`              | real HTTP: `Set-Cookie` headers, status codes         |
+| integration | `apps/dashboard/…/session-consumer.spec.tsx`   | the credentialed `/api/auth/me` call, `fetch` mocked  |
+| e2e         | `apps/web-e2e/src/auth.spec.ts`                | the real cookie jar, `Set-Cookie`, surviving a reload |

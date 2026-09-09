@@ -1,5 +1,4 @@
 import { Button } from '@interview/ui';
-import { getAuthStatus } from '@interview/auth';
 import { SessionConsumer } from '../features/session-consumer/session-consumer';
 import styles from './app.module.scss';
 
@@ -24,9 +23,6 @@ export function App() {
 
       <section className="ui-card">
         <h2 className="ui-card__title">Overview</h2>
-        <p className={styles.status}>
-          Auth status: <code>{getAuthStatus()}</code>
-        </p>
         <div className={styles.metrics}>
           {metrics.map((metric) => (
             <div key={metric.label} className={styles.metric}>

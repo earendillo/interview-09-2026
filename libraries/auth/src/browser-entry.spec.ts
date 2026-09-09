@@ -6,8 +6,9 @@ import { describe, expect, it } from 'vitest';
  * The regression test for a bug that every other check missed.
  *
  * `lib/jwt.ts` imports `node:crypto`. It used to be re-exported from
- * `index.ts`, so `import { getAuthStatus } from '@interview/auth'` in a React
- * application dragged a Node builtin into the browser bundle. Vitest runs in
+ * `index.ts`, so *any* import from `@interview/auth` in a React application -
+ * `useSession`, `hasPermission`, anything - dragged a Node builtin into the
+ * browser bundle along with it. Vitest runs in
  * Node and did not care; `tsc` does not care; `vite build` externalised it and
  * succeeded. The failure only appeared in a real browser, as
  *

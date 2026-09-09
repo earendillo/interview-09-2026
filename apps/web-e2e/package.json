@@ -20,7 +20,8 @@
         "options": {
           "config": "apps/web-e2e/playwright.config.ts"
         }
-      }
+      },
+      "format-check": {}
     }
   }
 }

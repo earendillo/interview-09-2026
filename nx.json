@@ -48,6 +48,28 @@
       }
     }
   ],
+  "targetDefaults": {
+    "lint": {
+      "options": {
+        "args": ["--max-warnings=0"]
+      }
+    },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check {projectRoot}"
+      },
+      "cache": true,
+      "outputs": [],
+      "inputs": [
+        "default",
+        "{workspaceRoot}/.prettierrc",
+        "{workspaceRoot}/.prettierignore",
+        "{workspaceRoot}/.gitignore",
+        { "externalDependencies": ["prettier"] }
+      ]
+    }
+  },
   "generators": {
     "@nx/react": {
       "application": {

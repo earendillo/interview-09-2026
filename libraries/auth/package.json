@@ -22,6 +22,9 @@
     "projectType": "library",
     "tags": [
       "type:shared-lib"
-    ]
+    ],
+    "targets": {
+      "format-check": {}
+    }
   }
 }

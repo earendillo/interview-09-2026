@@ -1,0 +1,14 @@
+# Line endings.
+#
+# Prettier is configured with its default `endOfLine: "lf"`, so a CRLF working
+# copy makes `prettier --check` fail on files nobody has edited - the diff is
+# invisible in a review and impossible to fix by editing. Normalising here is
+# what lets formatting be a gate rather than permanent noise.
+#
+# `text=auto` still lets Git detect binary content and leave it alone; `eol=lf`
+# pins the working-copy ending on every platform, so a Windows checkout and a
+# Linux CI runner produce byte-identical files.
+* text=auto eol=lf
+
+# Generated, and large. Collapsed in diffs and excluded from language stats.
+pnpm-lock.yaml linguist-generated=true -diff

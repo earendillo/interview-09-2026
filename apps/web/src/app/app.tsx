@@ -1,5 +1,4 @@
 import type { Item } from '@interview/shared';
-import { getAuthStatus } from '@interview/auth';
 import { Button } from '@interview/ui';
 import { AuthDemo } from '../features/auth-demo/auth-demo';
 import { ItemFilterDemo } from '../features/item-filter-demo/item-filter-demo';
@@ -26,7 +25,9 @@ export function App() {
       <section className="ui-card">
         <h2 className="ui-card__title">Workspace wiring</h2>
         <p className={styles.status}>
-          Auth status: <code>{getAuthStatus()}</code>
+          The <code>Item</code> type comes from <code>@interview/shared</code>{' '}
+          and the button from <code>@interview/ui</code> — both across a package
+          boundary, neither by a relative path.
         </p>
         <ul className={styles.itemList} data-testid="item-list">
           {items.map((item) => (

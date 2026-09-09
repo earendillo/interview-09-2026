@@ -6,7 +6,10 @@
     "projectType": "application",
     "tags": [
       "type:app"
-    ]
+    ],
+    "targets": {
+      "format-check": {}
+    }
   },
   "dependencies": {
     "react": "17.0.2",

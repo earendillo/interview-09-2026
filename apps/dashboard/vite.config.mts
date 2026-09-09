@@ -31,9 +31,10 @@ export default defineConfig(() => ({
         './DashboardWidget': './src/remote/dashboard-widget.tsx',
       },
       shared: ['react', 'react-dom'],
-      // Remote types are hand-declared in the shell (src/remotes.d.ts), so the
-      // plugin's type generation/consumption is not needed and its tsc pass
-      // would otherwise fail against this workspace's composite tsconfigs.
+      // The shell types federated modules through the generic on its own
+      // `RemoteRegistry.load<T>()`, so the plugin's type generation/consumption
+      // is not needed - and its tsc pass would otherwise fail against this
+      // workspace's composite tsconfigs.
       dts: false,
     }),
   ],

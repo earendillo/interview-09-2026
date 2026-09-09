@@ -69,7 +69,9 @@ describe('ForeignRemote', () => {
       />,
     );
 
-    expect(await screen.findByText('Unable to load Legacy remote')).toBeTruthy();
+    expect(
+      await screen.findByText('Unable to load Legacy remote'),
+    ).toBeTruthy();
     expect(mount).not.toHaveBeenCalled();
   });
 
@@ -81,7 +83,9 @@ describe('ForeignRemote', () => {
       />,
     );
 
-    expect(await screen.findByText('Unable to load Legacy remote')).toBeTruthy();
+    expect(
+      await screen.findByText('Unable to load Legacy remote'),
+    ).toBeTruthy();
   });
 
   it('contains a remote that throws while mounting, since it has no boundary of its own', async () => {
@@ -97,6 +101,8 @@ describe('ForeignRemote', () => {
       />,
     );
 
-    expect(await screen.findByText('Unable to load Legacy remote')).toBeTruthy();
+    expect(
+      await screen.findByText('Unable to load Legacy remote'),
+    ).toBeTruthy();
   });
 });

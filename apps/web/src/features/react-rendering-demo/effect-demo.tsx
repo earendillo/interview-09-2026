@@ -19,6 +19,13 @@ export function EffectDemo() {
   const [log, setLog] = useState<string[]>([]);
 
   // A brand new object on every render - the classic broken dependency.
+  //
+  // The disable belongs here rather than on the `useEffect` below:
+  // `exhaustive-deps` reports an unstable dependency at the line that *creates*
+  // it, not at the hook that consumes it. Its advice ("wrap the initialization
+  // in useMemo") is the correct fix everywhere except here, where the bug is
+  // the exhibit.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the point of the demo
   const config = { id: 1, label: 'demo' };
 
   const objectDepRuns = useRef(0);
@@ -45,7 +52,6 @@ export function EffectDemo() {
 
   // Object dependency: `config` is a different reference on every render, so
   // Object.is says "changed" and the effect runs every time.
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- the point of the demo
   useEffect(() => {
     objectDepRuns.current += 1;
   }, [config]);

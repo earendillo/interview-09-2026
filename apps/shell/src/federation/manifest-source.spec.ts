@@ -7,10 +7,19 @@ const body = {
 };
 
 const defaults = [
-  { name: 'web', url: '/built-in.js', shareScope: 'default', contract: SUPPORTED_CONTRACT },
+  {
+    name: 'web',
+    url: '/built-in.js',
+    shareScope: 'default',
+    contract: SUPPORTED_CONTRACT,
+  },
 ];
 
-const okResponse = (json: unknown) => ({ ok: true, status: 200, json: async () => json });
+const okResponse = (json: unknown) => ({
+  ok: true,
+  status: 200,
+  json: async () => json,
+});
 
 describe('loadManifest', () => {
   it('uses the fetched manifest when the network succeeds', async () => {
@@ -41,7 +50,9 @@ describe('loadManifest', () => {
   });
 
   it('falls back when the manifest responds with an error status', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
 
     const result = await loadManifest({ fetchImpl, defaults });
 
@@ -50,7 +61,9 @@ describe('loadManifest', () => {
   });
 
   it('degrades instead of bricking the host when the manifest is malformed', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(okResponse({ web: { contract: 1 } }));
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(okResponse({ web: { contract: 1 } }));
 
     const result = await loadManifest({ fetchImpl, defaults });
 

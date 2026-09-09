@@ -6,7 +6,10 @@
     "projectType": "application",
     "tags": [
       "type:app"
-    ]
+    ],
+    "targets": {
+      "format-check": {}
+    }
   },
   "devDependencies": {
     "@interview/auth": "workspace:*",

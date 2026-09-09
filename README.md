@@ -60,12 +60,12 @@ shell (:4202, host, React 19)
   └── legacy/LegacyWidget        ← :4203  React 17, its own copy
 ```
 
-| Application | Role   | React  | Share scope | Exposes                                   |
-| ----------- | ------ | ------ | ----------- | ----------------------------------------- |
-| `shell`     | host   | 19.0.0 | `default`   | —                                         |
-| `web`       | remote | 19.0.0 | `default`   | `./WebWidget` (a React component)         |
-| `dashboard` | remote | 19.0.0 | `default`   | `./DashboardWidget` (a React component)   |
-| `legacy`    | remote | 17.0.2 | `legacy`    | `./LegacyWidget` (a `mount` function)     |
+| Application | Role   | React  | Share scope | Exposes                                 |
+| ----------- | ------ | ------ | ----------- | --------------------------------------- |
+| `shell`     | host   | 19.0.0 | `default`   | —                                       |
+| `web`       | remote | 19.0.0 | `default`   | `./WebWidget` (a React component)       |
+| `dashboard` | remote | 19.0.0 | `default`   | `./DashboardWidget` (a React component) |
+| `legacy`    | remote | 17.0.2 | `legacy`    | `./LegacyWidget` (a `mount` function)   |
 
 Implemented with [`@module-federation/vite`](https://module-federation.io/integrations/build-tool/vite),
 configured in each application's `vite.config.mts`, plus
@@ -83,8 +83,8 @@ The host does **not** compile remote URLs into its bundle. It fetches
     "url": "https://cdn/web/v2.0.0/remoteEntry.js",
     "fallbackUrl": "https://cdn/web/v1.9.3/remoteEntry.js",
     "shareScope": "default",
-    "contract": 1
-  }
+    "contract": 1,
+  },
 }
 ```
 
@@ -123,13 +123,13 @@ side, each with its own reconciler and its own state.
 
 ### Failure handling and rollback
 
-| Failure                       | What happens                                                     |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Remote entry 404 / unreachable | Rolls back to `fallbackUrl` and retries once; the UI marks it     |
-| No `fallbackUrl` to roll back to | That one slot shows a fallback, the other remotes keep working  |
-| Contract version mismatch      | Refused before `mount` is called                                  |
-| Manifest unreachable/malformed | Host boots on built-in defaults and shows a degraded banner       |
-| Error inside the legacy tree   | Contained by the host — React 17 has no error boundaries of its own |
+| Failure                          | What happens                                                        |
+| -------------------------------- | ------------------------------------------------------------------- |
+| Remote entry 404 / unreachable   | Rolls back to `fallbackUrl` and retries once; the UI marks it       |
+| No `fallbackUrl` to roll back to | That one slot shows a fallback, the other remotes keep working      |
+| Contract version mismatch        | Refused before `mount` is called                                    |
+| Manifest unreachable/malformed   | Host boots on built-in defaults and shows a degraded banner         |
+| Error inside the legacy tree     | Contained by the host — React 17 has no error boundaries of its own |
 
 Rollbacks are reported through a small external store, read in the UI with
 `useSyncExternalStore`, so the card shows the build actually in use rather than
@@ -153,8 +153,22 @@ libraries            →  apps                      NOT ALLOWED
 Enforced by `@nx/enforce-module-boundaries` in the root `eslint.config.mjs`,
 using the `nx.tags` declared in each project's `package.json`.
 
+A second rule covers what tags cannot express — which _entry point_ of a project
+an import reached for:
+
+```
+apps (browser)       →  @interview/auth/server    NOT ALLOWED
+```
+
+`@interview/auth/server` needs `node:crypto`. Importing it from an application
+lints, typechecks and builds cleanly — Vite externalises the builtin with a
+warning and exits 0 — and then renders a blank page. A tag-based rule cannot see
+it, because `apps/web → libraries/auth` is a legal edge whichever subpath it
+names, so it is a `no-restricted-imports` rule spread into the browser
+applications only (`apps/api` imports the server entry on purpose).
+
 See [docs/dependency-boundaries.md](docs/dependency-boundaries.md) for details,
-for how to reproduce the intentionally invalid dependency, and for the
+for how to reproduce both intentionally invalid dependencies, and for the
 distinction between production experience and this playground.
 
 ## Styling
@@ -318,9 +332,50 @@ pnpm nx run-many -t lint
 pnpm nx run-many -t typecheck
 pnpm nx run-many -t test
 pnpm nx run-many -t build
+pnpm nx run-many -t format-check
 pnpm nx e2e @interview/web-e2e
-pnpm verify:boundaries   # expects the invalid app -> internal-lib import to fail
+pnpm verify:boundaries   # expects both intentionally invalid imports to fail
 ```
+
+`lint` runs with `--max-warnings=0`, so a warning fails the build like an error
+does. A rule worth only a warning is a rule nobody reads.
+
+### Formatting
+
+Prettier runs as a first-class Nx target rather than a loose script, so it is
+cached and `nx affected -t format-check` only checks what changed:
+
+```jsonc
+// nx.json — the configuration lives in one place
+"targetDefaults": {
+  "format-check": {
+    "executor": "nx:run-commands",
+    "options": { "command": "prettier --check {projectRoot}" },
+    "cache": true,
+    "inputs": ["default", "{workspaceRoot}/.prettierrc", /* … */],
+  },
+}
+```
+
+`targetDefaults` configures targets; it does not create them. So each project's
+`package.json` declares `"format-check": {}` — an empty object that says only
+"this project has the target" — and everything about _how_ it runs stays in
+`nx.json`. Editing the root `.prettierrc` is in the target's `inputs`, so it
+invalidates all ten caches rather than silently serving stale passes.
+
+**The Nx target covers `apps/` and `libraries/` only** — workspace-root files
+(`README.md`, `docs/`, `nx.json`, the root configs) belong to no project, so no
+project's target sees them. The script below is the whole-repo check:
+
+```bash
+pnpm format:check   # every file, root-level ones included
+pnpm format         # fix them
+```
+
+Line endings are pinned to LF by `.gitattributes` (`* text=auto eol=lf`).
+Without it, a Windows checkout with `core.autocrlf=true` produces CRLF files
+that Prettier's default `endOfLine: "lf"` rejects — a diff invisible in review
+and unfixable by editing, which is what makes formatting unusable as a gate.
 
 ## Tech stack
 

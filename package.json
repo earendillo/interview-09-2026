@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "verify:boundaries": "node tools/boundary-check/verify.mjs"
   },
   "private": true,

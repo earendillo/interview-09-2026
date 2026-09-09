@@ -1,4 +1,3 @@
-import { getRequestCount } from './item-api';
 import { OptimizedPanel } from './optimized-panel';
 import { UnoptimizedPanel } from './unoptimized-panel';
 import { useItems } from './use-items';
@@ -15,7 +14,7 @@ import styles from './item-filter-demo.module.scss';
  *   API -> items (state) -> filter -> visibleItems -> render
  */
 export function ItemFilterDemo() {
-  const { items, status, error } = useItems();
+  const { items, status, error, requests } = useItems();
 
   return (
     <section className={styles.demo}>
@@ -39,7 +38,7 @@ export function ItemFilterDemo() {
           items loaded: <b data-testid="items-count">{items.length}</b>
         </span>
         <span>
-          HTTP requests: <b data-testid="request-count">{getRequestCount()}</b>
+          HTTP requests: <b data-testid="request-count">{requests}</b>
         </span>
       </div>
 

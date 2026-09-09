@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Item } from '@interview/shared';
-import { fetchItems } from './item-api';
+import { fetchItems, getRequestCount } from './item-api';
 
 export type ItemsStatus = 'loading' | 'ready' | 'error';
 
@@ -9,6 +9,18 @@ export interface ItemsState {
   items: readonly Item[];
   status: ItemsStatus;
   error: string | null;
+  /**
+   * How many HTTP requests this feature has made, snapshotted into state when
+   * one settles.
+   *
+   * Reading the module counter during render instead would be a render that
+   * depends on mutable state React knows nothing about: nothing subscribes to
+   * it, so the displayed number would only ever update as a side effect of
+   * some *other* state change happening to rerender the component. Putting it
+   * in state is what makes "filtering makes no further request" an observable
+   * claim rather than a coincidence.
+   */
+  requests: number;
 }
 
 /**
@@ -24,19 +36,28 @@ export function useItems(): ItemsState {
     items: [],
     status: 'loading',
     error: null,
+    requests: 0,
   });
 
   useEffect(() => {
     const controller = new AbortController();
 
     fetchItems(controller.signal)
-      .then((items) => setState({ items, status: 'ready', error: null }))
+      .then((items) =>
+        setState({
+          items,
+          status: 'ready',
+          error: null,
+          requests: getRequestCount(),
+        }),
+      )
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         setState({
           items: [],
           status: 'error',
           error: error instanceof Error ? error.message : String(error),
+          requests: getRequestCount(),
         });
       });
 

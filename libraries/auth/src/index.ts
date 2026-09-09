@@ -7,7 +7,6 @@
  * `@interview/auth/server`, and `src/browser-entry.spec.ts` fails the build if
  * they ever leak back in.
  */
-export { getAuthStatus } from './lib/auth';
 export type { AccessTokenClaims, JwtPayload } from './lib/claims';
 export { PERMISSIONS, hasPermission, type Permission } from './lib/permissions';
 export { apiFetch, REFRESH_URL } from './session/api-fetch';

@@ -1,11 +1,8 @@
-import { useMemo, useSyncExternalStore, type ComponentType } from 'react';
+import { useCallback, useSyncExternalStore, type ComponentType } from 'react';
 import { Button } from '@interview/ui';
 import type { LoadedManifest } from '../federation/manifest-source';
 import type { RemoteRegistry } from '../federation/remote-registry';
-import {
-  getRollbacks,
-  subscribeRollbacks,
-} from '../federation/rollback-store';
+import { getRollbacks, subscribeRollbacks } from '../federation/rollback-store';
 import { ForeignRemote, type ForeignRemoteModule } from './foreign-remote';
 import { RemoteSlot } from './remote-slot';
 import styles from './app.module.scss';
@@ -18,17 +15,22 @@ export interface AppProps {
 type RemoteModule = { default: ComponentType };
 
 export function App({ registry, manifest }: AppProps) {
-  const loadWeb = useMemo(
-    () => () => registry.load<RemoteModule>('web', 'WebWidget'),
-    [registry],
-  );
-  const loadDashboard = useMemo(
-    () => () => registry.load<RemoteModule>('dashboard', 'DashboardWidget'),
+  // `useCallback`, not `useMemo`: what has to stay stable here is the loader's
+  // *identity*. `RemoteSlot` feeds it to `lazy()` through a `useMemo` keyed on
+  // it, and `ForeignRemote` has it in a `useEffect` dependency array - a fresh
+  // function on every render would re-import the remote each time.
+  const loadWeb = useCallback(
+    () => registry.load<RemoteModule>('web', 'WebWidget'),
     [registry],
   );
 
-  const loadLegacy = useMemo(
-    () => () => registry.load<ForeignRemoteModule>('legacy', 'LegacyWidget'),
+  const loadDashboard = useCallback(
+    () => registry.load<RemoteModule>('dashboard', 'DashboardWidget'),
+    [registry],
+  );
+
+  const loadLegacy = useCallback(
+    () => registry.load<ForeignRemoteModule>('legacy', 'LegacyWidget'),
     [registry],
   );
 
@@ -55,7 +57,11 @@ export function App({ registry, manifest }: AppProps) {
       </header>
 
       {manifest.source === 'defaults' && (
-        <p className={styles.degraded} role="alert" data-testid="manifest-degraded">
+        <p
+          className={styles.degraded}
+          role="alert"
+          data-testid="manifest-degraded"
+        >
           Remote manifest unavailable ({manifest.reason}) — running on built-in
           defaults.
         </p>
