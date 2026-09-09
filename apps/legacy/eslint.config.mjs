@@ -5,8 +5,4 @@ export default [
   ...baseConfig,
   ...nx.configs['flat/react'],
   ...browserAppBoundaries,
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    rules: {},
-  },
 ];

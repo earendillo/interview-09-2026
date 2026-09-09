@@ -11,9 +11,6 @@ export default defineConfig(() => ({
     host: 'localhost',
     origin: 'http://localhost:4203',
   },
-  resolve: {
-    dedupe: [],
-  },
   plugins: [
     react(),
     federation({

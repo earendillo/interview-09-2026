@@ -46,12 +46,11 @@ Thumbs.db
 .nx/*
 !.nx/installation
 
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
-
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 test-output
 
 .claude/worktrees
 .claude/settings.local.json
+
+.temp-docs
