@@ -96,6 +96,25 @@ the same calculation costs **2.6 ms** — worth saying out loud, because it show
 the honest limit of this: on a small list the memoisation would be noise, and
 the right answer would be to leave the code alone.
 
+**What is deliberately _not_ measured here: Web Vitals.** There is no LCP, INP
+or CLS instrumentation anywhere in this workspace, and no Lighthouse run. That
+is a scope choice, not an oversight: this feature answers the
+_state-management_ half of the performance question — a specific bottleneck in
+derived data, measured before and after a code change — and the numbers above
+are `performance.now()` timings and render counters, which is the right
+instrument for that.
+
+Field metrics answer a different question, on a different axis. INP would be
+the closest of the three to what is demonstrated here, since a long synchronous
+recalculation on an unrelated state update is exactly what stretches the
+interaction-to-next-paint window — but INP is a 75th-percentile field
+measurement over real sessions, and this workspace has no traffic, no
+`web-vitals` reporting endpoint and no deployment (CI/CD is intentionally not
+implemented). Reporting an LCP from a localhost dev server with 500 in-memory
+items would be a number without a meaning. The honest version of that work is a
+`web-vitals` listener posting to an analytics sink plus a budget enforced in a
+pipeline, and both halves of that are missing here by design.
+
 ## Fix
 
 `OptimizedPanel` is the same UI with three targeted changes:
