@@ -111,24 +111,13 @@ To see it: start all four applications, then edit `apps/shell/public/remotes.jso
 so one `url` points at a path that does not exist, give it a `fallbackUrl` that
 does, and reload the shell.
 
-## 4. Production experience vs. this playground
+## 4. Specific to this playground
 
-This distinction matters when discussing the repository, and it is the same
-split written down in
+Everything in §§ 1–3 was built for this repository, not carried over from a
+production system. The equivalent split for the workspace rules is in
 [dependency-boundaries.md § Production experience](dependency-boundaries.md).
 
-**Production experience being represented**
-
-> **To be completed by the author before this repository is shared.** This
-> section must say what actually reached production versus what stayed a proof
-> of concept, and which parts of the configuration were personally authored —
-> the follow-up question asks for exactly that, and it is the one thing the
-> repository cannot demonstrate on its own. Everything below the line is
-> verifiable by reading and running the code; this part is not.
-
-**Specific to this playground**
-
-Everything in §§ 1–3 was built for this repository. In particular:
+In particular:
 
 - The **remote manifest** (`/remotes.json`, `parseManifest`, `contract`
   versioning) is a design written here, not a copy of a production system. A
